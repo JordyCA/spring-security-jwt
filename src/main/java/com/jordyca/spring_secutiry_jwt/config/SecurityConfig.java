@@ -26,6 +26,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PathRequest.toH2Console()).permitAll()
                         .requestMatchers(this.pathH2).permitAll()
+                        .requestMatchers("/auth/register").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
