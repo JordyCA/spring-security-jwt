@@ -19,19 +19,23 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
+                /*Configuración CSRF (Cross-Site Request Forgery)*/
                 .csrf(csrf -> csrf
                         .ignoringRequestMatchers(PathRequest.toH2Console())
-                        .disable() // Generalmente se deshabilita para APIs Stateless con JWT
+                        .disable()
                 )
+                /*Reglas de Autorización de Peticiones*/
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PathRequest.toH2Console()).permitAll()
                         .requestMatchers(this.pathH2).permitAll()
-                        .requestMatchers("/auth/register").permitAll()
+                        .requestMatchers("/auth/**").permitAll()
                         .anyRequest().authenticated()
                 )
+                /*Gestión de Sesión*/
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
+                /*Cabeceras de Seguridad (Headers)*/
                 .headers(headers -> headers
                         .frameOptions(frame -> frame.sameOrigin())
                 );

@@ -14,5 +14,12 @@ public class AuthRequestDto {
         private String password;
         private String email;
     }
+
+    @Getter
+    @Setter
+    public static class LoginRequest {
+        private String email;
+        private String password;
+    }
 }
 
