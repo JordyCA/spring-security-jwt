@@ -26,6 +26,8 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     public Long id;
 
+    private String name;
+
     @Column(unique = true)
     private String email;
 
@@ -33,5 +35,5 @@ public class User {
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<Token> tokens;
-
+    
 }
