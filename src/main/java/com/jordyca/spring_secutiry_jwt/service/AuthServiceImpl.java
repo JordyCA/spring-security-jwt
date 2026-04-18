@@ -10,10 +10,12 @@ import com.jordyca.spring_secutiry_jwt.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @AllArgsConstructor
@@ -32,6 +34,7 @@ public class AuthServiceImpl implements AuthService {
                 .email(registerRequest.getEmail())
                 .password(passwordEncoder.encode(registerRequest.getPassword()))
                 .build();
+
         User savedUser = userRepository.save(newUser);
         String jwtToken = jwtService.generateToken(savedUser);
         String jwtTokenRefresh = jwtService.generateRefreshToken(savedUser);
@@ -84,5 +87,34 @@ public class AuthServiceImpl implements AuthService {
             }
             tokenRepository.saveAll(validUserTokenList);
         }
+    }
+
+    @Override
+    public TokenResponseDto refreshToken(String authHeader) {
+        if (Objects.isNull(authHeader) || !authHeader.startsWith("Bearer")) {
+            throw new IllegalArgumentException("Invalid Berar Token");
+        }
+        /*Access Token*/
+        String tokenRequest = authHeader.substring(7);
+        String userEmailToken = jwtService.extractUserName(tokenRequest);
+
+        if (Objects.isNull(userEmailToken)) {
+            throw new IllegalArgumentException("Invalid refresh Token");
+        }
+
+        User user = userRepository.findByEmail(userEmailToken)
+                .orElseThrow(() -> new UsernameNotFoundException(userEmailToken));
+
+        if (!jwtService.isTokenValid(tokenRequest, user)) {
+            throw new IllegalArgumentException("Invalid refresh Token");
+        }
+
+        String accessToken = jwtService.generateToken(user);
+        revokeAllTokensUser(user);
+        saveToken(user, accessToken);
+        return TokenResponseDto.builder()
+                .accessToken(accessToken)
+                .refreshToken(tokenRequest)
+                .build();
     }
 }

@@ -8,4 +8,6 @@ public interface AuthService {
     TokenResponseDto register(AuthRequestDto.RegisterRequest registerRequest);
 
     TokenResponseDto login(AuthRequestDto.LoginRequest loginRequest);
+
+    TokenResponseDto refreshToken(String authHeader);
 }
