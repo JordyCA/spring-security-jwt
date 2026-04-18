@@ -1,6 +1,7 @@
 package com.jordyca.spring_secutiry_jwt.service;
 
 import com.jordyca.spring_secutiry_jwt.domain.repository.User;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -47,5 +48,34 @@ public class JwtServiceImpl implements JwtService {
     private SecretKey getSignInKey() {
         byte[] keyBytes = Decoders.BASE64.decode(this.secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
+    }
+
+    @Override
+    public String extractUserName(String token) {
+        Claims jwtToken = Jwts.parser()
+                .verifyWith(getSignInKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+        return jwtToken.getSubject();
+    }
+
+    @Override
+    public Boolean isTokenValid(String token, User user) {
+        String userName = extractUserName(token);
+        return userName.equals(user.getEmail()) && !isTokenExpiration(token);
+    }
+
+    private Boolean isTokenExpiration(String token) {
+        return extractExpiration(token).before(new Date());
+    }
+
+    private Date extractExpiration(String token) {
+        Claims jwtToken = Jwts.parser()
+                .verifyWith(getSignInKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+        return jwtToken.getExpiration();
     }
 }
